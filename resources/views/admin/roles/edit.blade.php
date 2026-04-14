@@ -1,0 +1,289 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="container-fluid">
+    <div class="row">
+        <!-- Include Reusable Sidebar -->
+        @include('admin.partials.sidebar')
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Edit Role</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <a href="{{ route('admin.roles.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Roles
+                    </a>
+                </div>
+            </div>
+
+            <!-- Edit Role Form -->
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-shield-alt"></i> Edit Role Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ route('admin.roles.update', $role->id) }}">
+                                @csrf
+                                @method('PUT')
+
+                                <!-- Name Field -->
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Role Name</label>
+                                    <input type="text" class="form-control @error('name') is-invalid @enderror" 
+                                           id="name" name="name" value="{{ old('name', $role->name) }}" 
+                                           placeholder="Enter role name" required>
+                                    @error('name')
+                                        <div class="invalid-feedback">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+                                    <div class="form-text">
+                                        Update the name for this role.
+                                    </div>
+                                </div>
+
+                                <!-- Slug Field -->
+                                <div class="mb-3">
+                                    <label for="slug" class="form-label">Slug</label>
+                                    <input type="text" class="form-control @error('slug') is-invalid @enderror" 
+                                           id="slug" name="slug" value="{{ old('slug', $role->slug) }}" 
+                                           placeholder="Enter role slug" required>
+                                    @error('slug')
+                                        <div class="invalid-feedback">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+                                    <div class="form-text">
+                                        URL-friendly version of role name.
+                                    </div>
+                                </div>
+
+                                <!-- Permissions Field -->
+                                <div class="mb-3">
+                                    <label for="permissions" class="form-label">Permissions</label>
+                                    <select class="form-select @error('permissions') is-invalid @enderror" 
+                                            id="permissions" name="permissions[]" multiple="multiple">
+                                        @foreach($permissions as $permission)
+                                            <option value="{{ $permission->id }}" 
+                                                    {{ in_array($permission->id, $rolePermissions) ? 'selected' : '' }}>
+                                                {{ $permission->name }} - {{ $permission->description ?? 'No description' }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('permissions')
+                                        <div class="invalid-feedback">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+                                    <div class="form-text">
+                                        Select permissions for this role. You can choose multiple permissions.
+                                    </div>
+                                </div>
+
+                                <!-- Role Info -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <div class="form-text">
+                                            <strong>Role ID:</strong> #{{ $role->id }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-text">
+                                            <strong>Users:</strong> {{ $role->users()->count() }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a href="{{ route('admin.roles.index') }}" class="btn btn-secondary me-md-2">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Update Role
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role Statistics -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-chart-bar"></i> Role Statistics
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-md-3">
+                                    <div class="border-end">
+                                        <h4 class="text-primary">{{ $role->users()->count() }}</h4>
+                                        <p class="text-muted mb-0">Assigned Users</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="border-end">
+                                        <h4 class="text-success">{{ $role->created_at->format('M d, Y') }}</h4>
+                                        <p class="text-muted mb-0">Created Date</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="border-end">
+                                        <h4 class="text-info">{{ $role->updated_at->format('M d, Y') }}</h4>
+                                        <p class="text-muted mb-0">Last Updated</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <h4 class="text-warning">{{ $role->name }}</h4>
+                                    <p class="text-muted mb-0">Current Name</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users with this Role -->
+            @if ($role->users()->count() > 0)
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-users"></i> Users with this Role ({{ $role->users()->count() }})
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Email</th>
+                                                <th>Assigned At</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($role->users()->limit(10)->get() as $user)
+                                                <tr>
+                                                    <td>{{ $user->name }}</td>
+                                                    <td>{{ $user->email }}</td>
+                                                    <td>{{ $user->created_at->format('M d, Y') }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                                @if ($role->users()->count() > 10)
+                                    <div class="text-center mt-2">
+                                        <small class="text-muted">Showing first 10 of {{ $role->users()->count() }} users</small>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </main>
+    </div>
+</div>
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+<style>
+.sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    padding: 48px 0 0;
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+
+.sidebar-sticky {
+    position: relative;
+    top: 0;
+    height: calc(100vh - 48px);
+    padding-top: .5rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.sidebar .nav-link {
+    font-weight: 500;
+    color: #333;
+    padding: 0.75rem 1rem;
+    border-radius: 0.25rem;
+    margin: 0.125rem 0;
+}
+
+.sidebar .nav-link:hover {
+    color: #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+.sidebar .nav-link.active {
+    color: #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+.sidebar-heading {
+    font-size: .75rem;
+    text-transform: uppercase;
+}
+
+@media (max-width: 767.98px) {
+    .sidebar {
+        position: static;
+        height: auto;
+        padding: 0;
+    }
+    
+    .sidebar-sticky {
+        height: auto;
+    }
+}
+</style>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    $('#permissions').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: 'Select permissions...',
+        allowClear: true
+    });
+
+    // Auto-generate slug from name
+    const nameInput = document.getElementById('name');
+    const slugInput = document.getElementById('slug');
+    
+    nameInput.addEventListener('input', function() {
+        const name = this.value;
+        const slug = name.toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+        slugInput.value = slug;
+    });
+});
+</script>
+@endsection
